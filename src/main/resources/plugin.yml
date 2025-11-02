@@ -1,0 +1,16 @@
+name: ClientsCustomWeapons
+version: '0.1'
+main: de.clientapi.clientsCustomWeapons.ClientsCustomWeapons
+api-version: '1.21'
+authors: [ ClientAPI ]
+description: A Framework to create Weapons with custom attack speed, custom reach and special effects such as the ability to knock players from horses
+website: https://github.com/ClientAPII
+softdepend: [ProtocolLib]
+commands:
+  ccw:
+    description: Admin command
+    usage: /ccw give <weaponId> [player] | /ccw reload
+    permission: ccw.admin
+permissions:
+  ccw.admin:
+    default: op

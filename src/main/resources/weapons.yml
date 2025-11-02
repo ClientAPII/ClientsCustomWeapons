@@ -1,0 +1,34 @@
+weapons:
+  zweihander:
+    name: "&b&lZweihänder"
+    modelName: ""
+    material: IRON_SWORD
+    attackDamage: 8.0
+    attackSpeed: 1.6
+    maxDurability: 450
+    twoHanded: true
+    range: 5.0
+    special: []
+
+  lanze:
+    name: "&eLanze"
+    modelName: ""
+    material: IRON_SWORD
+    attackDamage: 5.0
+    attackSpeed: 1.0
+    maxDurability: 320
+    twoHanded: true
+    range: 4.5
+    special:
+      - DISMOUNT_MOUNTED
+
+  test:
+    name: "&cTest Waffe"
+    modelName: ""
+    material: IRON_SWORD
+    attackDamage: 6.0
+    attackSpeed: 2.0
+    maxDurability: 200
+    twoHanded: false
+    range: 10.0
+    special: []
