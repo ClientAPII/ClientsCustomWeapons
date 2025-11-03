@@ -205,7 +205,6 @@ public final class WeaponRangeHandler implements Listener {
             var veh = target.getVehicle();
             if (veh instanceof AbstractHorse || veh.getScoreboardTags().contains("mount")) {
                 target.leaveVehicle();
-                // kleiner Nudge, bleibt erhalten
                 target.damage(0.01, attacker);
                 target.setNoDamageTicks(0);
             }

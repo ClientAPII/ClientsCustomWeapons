@@ -3,8 +3,11 @@ package de.clientapi.clientsCustomWeapons.command;
 import de.clientapi.clientsCustomWeapons.ClientsCustomWeapons;
 import de.clientapi.clientsCustomWeapons.config.WeaponRegistry;
 import de.clientapi.clientsCustomWeapons.config.WeaponSpec;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
@@ -13,6 +16,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public final class CcwCommand implements CommandExecutor, TabCompleter {
+
+    private static final MiniMessage MM = MiniMessage.miniMessage();
+    private static final LegacyComponentSerializer AMP = LegacyComponentSerializer.legacyAmpersand();
+
+    private static final Component PREFIX = MM.deserialize(
+            "<dark_gray><b>[<gradient:#4F679B:#4745D9>CCW</gradient>]</b> <gray>» </gray>"
+    );
 
     private final ClientsCustomWeapons plugin;
     private final WeaponRegistry registry;
@@ -25,61 +35,87 @@ public final class CcwCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!sender.hasPermission("ccw.admin")) {
-            sender.sendMessage(ChatColor.RED + "No permission.");
+            send(sender, Component.text("Keine Berechtigung.", NamedTextColor.RED));
             return true;
         }
+
         if (args.length < 1) {
-            sender.sendMessage(ChatColor.YELLOW + "Usage: /ccw give <weaponId> [player] | /ccw reload");
+            send(sender, Component.text("Verwendung: /ccw give <weaponId> [player] | /ccw reload", NamedTextColor.GRAY));
             return true;
         }
+
         switch (args[0].toLowerCase()) {
             case "reload" -> {
                 registry.reload();
-                sender.sendMessage(ChatColor.GREEN + "weapons.yml reloaded.");
+                send(sender, Component.text("weapons.yml neu geladen.", NamedTextColor.GREEN));
                 return true;
             }
+
             case "give" -> {
                 if (args.length < 2) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /ccw give <weaponId> [player]");
+                    send(sender, Component.text("Verwendung: /ccw give <weaponId> [player]", NamedTextColor.GRAY));
                     return true;
                 }
-                var spec = registry.get(args[1]);
-                if (spec.isEmpty()) {
-                    sender.sendMessage(ChatColor.RED + "Unknown weapon id: " + args[1]);
+
+                var specOpt = registry.get(args[1]);
+                if (specOpt.isEmpty()) {
+                    send(sender, Component.text("Unbekannte Waffen-ID: ", NamedTextColor.RED)
+                            .append(Component.text(args[1], NamedTextColor.WHITE)));
                     return true;
                 }
+
                 Player target;
                 if (args.length >= 3) {
                     target = Bukkit.getPlayerExact(args[2]);
                     if (target == null) {
-                        sender.sendMessage(ChatColor.RED + "Player not found: " + args[2]);
+                        send(sender, Component.text("Spieler nicht gefunden: ", NamedTextColor.RED)
+                                .append(Component.text(args[2], NamedTextColor.WHITE)));
                         return true;
                     }
                 } else {
                     if (!(sender instanceof Player p)) {
-                        sender.sendMessage(ChatColor.RED + "Console must specify a player.");
+                        send(sender, Component.text("Konsole muss einen Spieler angeben.", NamedTextColor.RED));
                         return true;
                     }
                     target = p;
                 }
-                var stack = registry.buildItem(spec.get());
-                var left = target.getInventory().addItem(stack);
-                if (!left.isEmpty()) target.getWorld().dropItemNaturally(target.getLocation(), stack);
-                sender.sendMessage(ChatColor.GREEN + "Gave " + spec.get().id() + " to " + target.getName());
+
+                var spec = specOpt.get();
+                var stack = registry.buildItem(spec);
+                var leftovers = target.getInventory().addItem(stack);
+                if (!leftovers.isEmpty()) target.getWorld().dropItemNaturally(target.getLocation(), stack);
+
+                Component weaponNameColored = AMP.deserialize(spec.name()); // übernimmt z. B. &c
+                send(sender,
+                        Component.text("Waffe ", NamedTextColor.GRAY)
+                                .append(weaponNameColored)
+                                .append(Component.text(" an ", NamedTextColor.GRAY))
+                                .append(Component.text(target.getName(), NamedTextColor.GRAY))
+                                .append(Component.text(" gegeben.", NamedTextColor.GRAY))
+                );
                 return true;
             }
+
             default -> {
-                sender.sendMessage(ChatColor.RED + "Unknown subcommand.");
+                send(sender, Component.text("Unbekannter Unterbefehl.", NamedTextColor.RED));
                 return true;
             }
         }
     }
 
+    private void send(CommandSender to, Component messageGrayOrColored) {
+        // Standard: alles grau, außer bereits gefärbte Teil-Components
+        Component content = messageGrayOrColored.colorIfAbsent(NamedTextColor.GRAY);
+        to.sendMessage(PREFIX.append(content));
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
         var out = new ArrayList<String>();
-        if (args.length == 1) { out.add("give"); out.add("reload"); }
-        else if (args.length == 2 && "give".equalsIgnoreCase(args[0])) {
+        if (args.length == 1) {
+            out.add("give");
+            out.add("reload");
+        } else if (args.length == 2 && "give".equalsIgnoreCase(args[0])) {
             out.addAll(registry.all().stream().map(WeaponSpec::id).collect(Collectors.toList()));
         } else if (args.length == 3 && "give".equalsIgnoreCase(args[0])) {
             out.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());

@@ -14,6 +14,5 @@ public final class Keys {
     public static NamespacedKey specialFlags(Plugin p)     { return new NamespacedKey(p, "specials_csv"); }
     public static NamespacedKey modelName(Plugin p)        { return new NamespacedKey(p, "model_name"); }
 
-    // Haltbarkeit über ItemMeta#setMaxDamage(Integer) wenn vorhanden
     public static NamespacedKey maxDurBackup(Plugin p)     { return new NamespacedKey(p, "max_durability"); }
 }
