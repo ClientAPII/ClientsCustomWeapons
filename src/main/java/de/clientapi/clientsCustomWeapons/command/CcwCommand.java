@@ -85,7 +85,7 @@ public final class CcwCommand implements CommandExecutor, TabCompleter {
                 var leftovers = target.getInventory().addItem(stack);
                 if (!leftovers.isEmpty()) target.getWorld().dropItemNaturally(target.getLocation(), stack);
 
-                Component weaponNameColored = AMP.deserialize(spec.name()); // übernimmt z. B. &c
+                Component weaponNameColored = AMP.deserialize(spec.name());
                 send(sender,
                         Component.text("Waffe ", NamedTextColor.GRAY)
                                 .append(weaponNameColored)
@@ -104,7 +104,6 @@ public final class CcwCommand implements CommandExecutor, TabCompleter {
     }
 
     private void send(CommandSender to, Component messageGrayOrColored) {
-        // Standard: alles grau, außer bereits gefärbte Teil-Components
         Component content = messageGrayOrColored.colorIfAbsent(NamedTextColor.GRAY);
         to.sendMessage(PREFIX.append(content));
     }
